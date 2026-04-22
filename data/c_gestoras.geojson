@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "c_gestoras",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "CODIGOCO0": "24", "ANOFORMA1": "2010", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Sistema Fogareiro - Quixeramobim", "LATITUDE4": "9426105", "LONGITUD5": "467482", "MUNICIPI6": "Quixeramobim" }, "geometry": { "type": "Point", "coordinates": [ -39.29342569296665, -5.191997444778651 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "25", "ANOFORMA1": "2010", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Açude Pirabibu", "LATITUDE4": "9450389", "LONGITUD5": "459697", "MUNICIPI6": "Quixeramobim" }, "geometry": { "type": "Point", "coordinates": [ -39.363545631869478, -4.972273439474209 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "26", "ANOFORMA1": "2010", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Açude São José II", "LATITUDE4": "9353482", "LONGITUD5": "448350", "MUNICIPI6": "Piquet Carneiro" }, "geometry": { "type": "Point", "coordinates": [ -39.466569904163357, -5.848853148458169 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "36", "ANOFORMA1": "2011", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Açude Cedro", "LATITUDE4": "9449343", "LONGITUD5": "491183", "MUNICIPI6": "Quixadá" }, "geometry": { "type": "Point", "coordinates": [ -39.07953559807936, -4.981834062586601 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "37", "ANOFORMA1": "2011", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Açude Umari", "LATITUDE4": "9470941", "LONGITUD5": "439703", "MUNICIPI6": "Madalena" }, "geometry": { "type": "Point", "coordinates": [ -39.543746655057724, -4.786231613786831 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "46", "ANOFORMA1": "2012", "BACIAHID2": "Banabuiú", "SISTEMAH3": "Açude Trapiá II", "LATITUDE4": "9392416", "LONGITUD5": "417016", "MUNICIPI6": "Pedra branca" }, "geometry": { "type": "Point", "coordinates": [ -39.749155145209855, -5.496362310197797 ] } },
+{ "type": "Feature", "properties": { "CODIGOCO0": "65", "ANOFORMA1": "2016", "BACIAHID2": "Banbuiú", "SISTEMAH3": "Açude Pedras Brancas", "LATITUDE4": "9435929", "LONGITUD5": "511971", "MUNICIPI6": "Quixadá" }, "geometry": { "type": "Point", "coordinates": [ -38.891995463367927, -5.103179834618468 ] } }
+]
+}

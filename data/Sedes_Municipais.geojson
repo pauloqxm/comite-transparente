@@ -1,0 +1,19 @@
+{
+"type": "FeatureCollection",
+"name": "Sedes_Municipais",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "NAME": "PIQUET CARNEIRO", "GEOCODIGO_": 2310902, "NOME_MUNIC": "PIQUET CARNEIRO", "UF": "ce", "X": 453568, "Y": 9357939 }, "geometry": { "type": "Point", "coordinates": [ -39.419406, -5.80857 ] } },
+{ "type": "Feature", "properties": { "NAME": "QUIXADÁ", "GEOCODIGO_": 2311306, "NOME_MUNIC": "QUIXADÁ", "UF": "ce", "X": 498698, "Y": 9451348 }, "geometry": { "type": "Point", "coordinates": [ -39.011745, -4.9637 ] } },
+{ "type": "Feature", "properties": { "NAME": "QUIXERAMOBIM", "GEOCODIGO_": 2311405, "NOME_MUNIC": "QUIXERAMOBIM", "UF": "ce", "X": 467379, "Y": 9425397 }, "geometry": { "type": "Point", "coordinates": [ -39.294354, -5.198405 ] } },
+{ "type": "Feature", "properties": { "NAME": "SENADOR POMPEU", "GEOCODIGO_": 2312700, "NOME_MUNIC": "SENADOR POMPEU", "UF": "ce", "X": 458433, "Y": 9382177 }, "geometry": { "type": "Point", "coordinates": [ -39.375325, -5.589344 ] } },
+{ "type": "Feature", "properties": { "NAME": "BANABUIÚ", "GEOCODIGO_": 2301851, "NOME_MUNIC": "BANABUIÚ", "UF": "ce", "X": 508223, "Y": 9412510 }, "geometry": { "type": "Point", "coordinates": [ -38.925785, -5.315047 ] } },
+{ "type": "Feature", "properties": { "NAME": "BOA VIAGEM", "GEOCODIGO_": 2302404, "NOME_MUNIC": "BOA VIAGEM", "UF": "ce", "X": 418726, "Y": 9433390 }, "geometry": { "type": "Point", "coordinates": [ -39.733282, -5.125744 ] } },
+{ "type": "Feature", "properties": { "NAME": "IBICUITINGA", "GEOCODIGO_": 2305332, "NOME_MUNIC": "IBICUITINGA", "UF": "ce", "X": 539814, "Y": 9450733 }, "geometry": { "type": "Point", "coordinates": [ -38.640863, -4.969166 ] } },
+{ "type": "Feature", "properties": { "NAME": "MADALENA", "GEOCODIGO_": 2307635, "NOME_MUNIC": "MADALENA", "UF": "ce", "X": 436156, "Y": 9463620 }, "geometry": { "type": "Point", "coordinates": [ -39.575789, -4.852434 ] } },
+{ "type": "Feature", "properties": { "NAME": "MOMBAÇA", "GEOCODIGO_": 2308500, "NOME_MUNIC": "MOMBAÇA", "UF": "ce", "X": 430865, "Y": 9364724 }, "geometry": { "type": "Point", "coordinates": [ -39.624405, -5.747005 ] } },
+{ "type": "Feature", "properties": { "NAME": "MONSENHOR TABOSA", "GEOCODIGO_": 2308609, "NOME_MUNIC": "MONSENHOR TABOSA", "UF": "ce", "X": 381333, "Y": 9471220 }, "geometry": { "type": "Point", "coordinates": [ -40.070067, -4.783091 ] } },
+{ "type": "Feature", "properties": { "NAME": "MORADA NOVA", "GEOCODIGO_": 2308708, "NOME_MUNIC": "MORADA NOVA", "UF": "ce", "X": 570394, "Y": 9436584 }, "geometry": { "type": "Point", "coordinates": [ -38.364907, -5.096952 ] } },
+{ "type": "Feature", "properties": { "NAME": "PEDRA BRANCA", "GEOCODIGO_": 2310506, "NOME_MUNIC": "PEDRA BRANCA", "UF": "ce", "X": 420912, "Y": 9397028 }, "geometry": { "type": "Point", "coordinates": [ -39.713938, -5.454686 ] } }
+]
+}

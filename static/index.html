@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Transparência e Participação — Comitê Banabuiú</title>
+
+  <!-- MapLibre GL -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Estilos próprios -->
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="site-header" id="top">
+  <div class="header-inner">
+    <div class="header-brand">
+      <img src="https://i.ibb.co/KpHGQ6qg/LOGOPROTAL.png" alt="Logo Portal" class="header-logo" />
+      <div>
+        <div class="header-title">Portal Transparência e Participação</div>
+        <div class="header-subtitle">📌 Comitê da Sub-Bacia do Rio Banabuiú</div>
+      </div>
+    </div>
+
+    <nav class="header-nav">
+      <div class="dropdown">
+        <button class="dropdown-btn">Sistema <span>▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://www.srh.ce.gov.br/" target="_blank" rel="noopener">🏢 SRH</a>
+          <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">💧 COGERH</a>
+          <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">🚰 SOHIDRA</a>
+          <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-btn">Comitê <span>▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://www.cbhbanabuiu.com.br/institucional/" target="_blank" rel="noopener">💼 Institucional</a>
+          <a href="https://www.cbhbanabuiu.com.br/institucional/Regimento/" target="_blank" rel="noopener">📃 Regimento</a>
+          <a href="https://www.cbhbanabuiu.com.br/institucional/conheca-nossa-bacia-hidrografica/" target="_blank" rel="noopener">💦 A Bacia</a>
+        </div>
+      </div>
+      <div class="header-date" id="header-date">📅 …</div>
+    </nav>
+
+    <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<!-- ═══════════════════ NAV ABAS ═══════════════════ -->
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn active" data-section="home">🏠 Início</button>
+  <button class="tab-btn" data-section="painel">💧 Painel</button>
+  <button class="tab-btn" data-section="acudes">🌊 Açudes</button>
+  <button class="tab-btn" data-section="sedes">🏘️ Sedes</button>
+  <button class="tab-btn" data-section="alocacao">📋 Alocação</button>
+  <button class="tab-btn" data-section="comite">🙋 Comitê</button>
+  <button class="tab-btn" data-section="publicacoes">📚 Publicações</button>
+  <button class="tab-btn" data-section="diario">📊 Diário</button>
+  <button class="tab-btn" data-section="docs">📜 Documentos</button>
+  <button class="tab-btn" data-section="contato">✉️ Contato</button>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main class="main-content">
+
+  <!-- ── HOME ── -->
+  <section id="home" class="page-section active">
+    <div class="hero-card">
+      <img src="https://i.ibb.co/KpHGQ6qg/LOGOPROTAL.png" alt="Logo" class="hero-logo" />
+      <h1>Portal Transparência e Participação</h1>
+      <h2>Comitê da Sub-Bacia Hidrográfica do Rio Banabuiú</h2>
+      <p>Acompanhe a gestão das águas da bacia, dados de reservatórios, operações de vazão e muito mais.</p>
+    </div>
+    <div class="home-grid">
+      <div class="home-card" onclick="navigate('painel')">
+        <div class="home-card-icon">💧</div>
+        <div class="home-card-title">Painel de Vazões</div>
+        <div class="home-card-desc">Evolução da vazão operada por reservatório, KPIs e mapa interativo.</div>
+      </div>
+      <div class="home-card" onclick="navigate('acudes')">
+        <div class="home-card-icon">🌊</div>
+        <div class="home-card-title">Açudes Monitorados</div>
+        <div class="home-card-desc">Volumes, percentuais e status dos reservatórios da bacia.</div>
+      </div>
+      <div class="home-card" onclick="navigate('sedes')">
+        <div class="home-card-icon">🏘️</div>
+        <div class="home-card-title">Situação das Sedes</div>
+        <div class="home-card-desc">Cotas, volumes e simulações por município.</div>
+      </div>
+      <div class="home-card" onclick="navigate('diario')">
+        <div class="home-card-icon">📊</div>
+        <div class="home-card-title">Acompanhamento Diário</div>
+        <div class="home-card-desc">Variações de nível e volume entre datas consecutivas.</div>
+      </div>
+      <div class="home-card" onclick="navigate('comite')">
+        <div class="home-card-icon">🙋</div>
+        <div class="home-card-title">O Comitê</div>
+        <div class="home-card-desc">Representantes, segmentos e distribuição geográfica.</div>
+      </div>
+      <div class="home-card" onclick="navigate('docs')">
+        <div class="home-card-icon">📜</div>
+        <div class="home-card-title">Documentos</div>
+        <div class="home-card-desc">Atas e apresentações das reuniões de operação.</div>
+      </div>
+      <div class="home-card" onclick="navigate('publicacoes')">
+        <div class="home-card-icon">📚</div>
+        <div class="home-card-title">Publicações</div>
+        <div class="home-card-desc">Catálogo de publicações e acervo disponível.</div>
+      </div>
+      <div class="home-card" onclick="navigate('contato')">
+        <div class="home-card-icon">✉️</div>
+        <div class="home-card-title">Fale Conosco</div>
+        <div class="home-card-desc">Envie dúvidas, sugestões ou denúncias ao Comitê.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAINEL DE VAZÕES ── -->
+  <section id="painel" class="page-section">
+    <div class="section-header"><h2>💧 Painel de Vazões</h2></div>
+    <div class="filter-card" id="painel-filters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Reservatório</label>
+          <select id="painel-sel-res" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Operação</label>
+          <select id="painel-sel-op" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Unidade</label>
+          <select id="painel-sel-unidade">
+            <option value="Ls" selected>L/s</option>
+            <option value="m3s">m³/s</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Data início</label>
+          <input type="date" id="painel-data-ini" />
+        </div>
+        <div class="filter-group">
+          <label>Data fim</label>
+          <input type="date" id="painel-data-fim" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadPainel()">Aplicar Filtros</button>
+    </div>
+
+    <div class="kpi-row" id="painel-kpis"></div>
+
+    <div class="chart-card">
+      <h3>📈 Evolução da Vazão Operada por Reservatório</h3>
+      <canvas id="chart-vazao-evolucao" height="120"></canvas>
+    </div>
+
+    <div class="map-card">
+      <h3>🗺️ Mapa dos Reservatórios</h3>
+      <div id="map-painel" class="map-container"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>📊 Volume Liberado por Reservatório</h3>
+      <canvas id="chart-vazao-volume" height="100"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>🏞️ Média Mensal da Vazão por Reservatório</h3>
+      <canvas id="chart-vazao-media" height="120"></canvas>
+    </div>
+
+    <div class="table-card">
+      <h3>📋 Tabela Detalhada</h3>
+      <div class="table-wrapper" id="painel-table"></div>
+    </div>
+  </section>
+
+  <!-- ── AÇUDES ── -->
+  <section id="acudes" class="page-section">
+    <div class="section-header"><h2>🌊 Açudes Monitorados</h2></div>
+    <div class="info-card">
+      📌 Visualize os açudes monitorados, filtre por período e reservatório, e acompanhe volumes e percentuais.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Reservatório(s)</label>
+          <select id="acudes-sel-res" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Município</label>
+          <select id="acudes-sel-mun"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Data início</label>
+          <input type="date" id="acudes-data-ini" />
+        </div>
+        <div class="filter-group">
+          <label>Data fim</label>
+          <input type="date" id="acudes-data-fim" />
+        </div>
+        <div class="filter-group">
+          <label>% Mín</label>
+          <input type="number" id="acudes-perc-min" value="0" min="0" max="200" step="0.1" />
+        </div>
+        <div class="filter-group">
+          <label>% Máx</label>
+          <input type="number" id="acudes-perc-max" value="200" min="0" max="200" step="0.1" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadAcudes()">Aplicar Filtros</button>
+      <button class="btn-secondary" onclick="exportCSV('acudes')">⬇️ CSV</button>
+    </div>
+
+    <div class="map-card">
+      <h3>🗺️ Mapa dos Açudes</h3>
+      <div class="legend-row" id="acudes-legend"></div>
+      <div id="map-acudes" class="map-container"></div>
+    </div>
+
+    <div class="table-card">
+      <h3>📊 Dados Detalhados</h3>
+      <div class="table-wrapper" id="acudes-table"></div>
+      <div class="legend-status" id="acudes-legend-status"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>📈 Volume ao Longo do Tempo</h3>
+      <canvas id="chart-acudes-volume" height="100"></canvas>
+    </div>
+  </section>
+
+  <!-- ── SEDES MUNICIPAIS ── -->
+  <section id="sedes" class="page-section">
+    <div class="section-header"><h2>🏘️ Situação das Sedes Municipais</h2></div>
+    <div class="info-card">
+      📌 Cotas, volumes e simulações de operação por açude e município.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Açude</label>
+          <select id="sedes-sel-acude"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Município</label>
+          <select id="sedes-sel-mun"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Região Hidrográfica</label>
+          <select id="sedes-sel-regiao"><option value="">Todas</option></select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadSedes()">Aplicar Filtros</button>
+    </div>
+
+    <div class="kpi-row" id="sedes-kpis"></div>
+
+    <div class="map-card">
+      <h3>🗺️ Mapa das Sedes</h3>
+      <div id="map-sedes" class="map-container"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>📈 Cota ao Longo do Tempo</h3>
+      <canvas id="chart-sedes-cota" height="100"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>💧 Volume (m³) ao Longo do Tempo</h3>
+      <canvas id="chart-sedes-volume" height="100"></canvas>
+    </div>
+
+    <div class="table-card">
+      <h3>📋 Tabela de Simulações</h3>
+      <div class="table-wrapper" id="sedes-table"></div>
+    </div>
+  </section>
+
+  <!-- ── ALOCAÇÃO NEGOCIADA ── -->
+  <section id="alocacao" class="page-section">
+    <div class="section-header"><h2>📋 Alocação Negociada de Água</h2></div>
+    <div class="info-card">
+      📌 A Alocação Negociada é o processo participativo de distribuição das vazões operadas pelos açudes da bacia,
+      definida em reuniões do Comitê com base nas demandas dos usuários e na disponibilidade hídrica.
+    </div>
+    <div class="content-columns">
+      <div class="content-text">
+        <h3>O que é?</h3>
+        <p>
+          A Alocação Negociada de Água é uma metodologia participativa desenvolvida pela COGERH para
+          envolver os usuários de água na gestão dos recursos hídricos. As decisões sobre a distribuição
+          das vazões são tomadas em reuniões com os representantes dos diferentes segmentos usuários.
+        </p>
+        <h3>Como funciona?</h3>
+        <ul>
+          <li>Levantamento das demandas dos usuários</li>
+          <li>Avaliação da disponibilidade hídrica dos reservatórios</li>
+          <li>Realização de reuniões de negociação com os usuários</li>
+          <li>Definição consensual das vazões a serem liberadas</li>
+          <li>Monitoramento e ajuste das operações</li>
+        </ul>
+        <h3>Mais informações</h3>
+        <p>
+          Acesse o <a href="https://www.cbhbanabuiu.com.br/" target="_blank" rel="noopener">site oficial do Comitê</a>
+          ou consulte a aba <strong>Documentos</strong> para atas e apresentações das reuniões de operação.
+        </p>
+      </div>
+      <div class="content-links">
+        <a class="link-card" href="#" onclick="navigate('docs'); return false;">
+          <span class="link-icon">📜</span>
+          <span>Atas das Reuniões</span>
+        </a>
+        <a class="link-card" href="#" onclick="navigate('painel'); return false;">
+          <span class="link-icon">💧</span>
+          <span>Painel de Vazões</span>
+        </a>
+        <a class="link-card" href="https://www.cbhbanabuiu.com.br/alocacao-negociada/" target="_blank" rel="noopener">
+          <span class="link-icon">🔗</span>
+          <span>Site do Comitê</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COMITÊ ── -->
+  <section id="comite" class="page-section">
+    <div class="section-header"><h2>🙋 O Comitê</h2></div>
+    <div class="info-card">
+      📌 Listagem dos representantes, mapa por segmento e distribuição por segmento e município.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Segmento</label>
+          <select id="comite-sel-seg" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Município</label>
+          <select id="comite-sel-mun" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Pesquisar nome</label>
+          <input type="text" id="comite-busca" placeholder="Digite parte do nome…" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadComite()">Filtrar</button>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h3>📑 Representantes</h3>
+        <div class="table-wrapper" id="comite-table"></div>
+      </div>
+      <div>
+        <h3>🗺️ Mapa dos Representantes</h3>
+        <div id="map-comite" class="map-container"></div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:1.5rem">
+      <div class="chart-card">
+        <h3>🥧 Por Segmento</h3>
+        <canvas id="chart-comite-seg" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>📊 Por Município</h3>
+        <canvas id="chart-comite-mun" height="200"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PUBLICAÇÕES ── -->
+  <section id="publicacoes" class="page-section">
+    <div class="section-header"><h2>📚 Publicações / Acervo</h2></div>
+    <div class="info-card">
+      📌 Catálogo de publicações organizadas por categoria.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Categoria</label>
+          <select id="pub-sel-cat"><option value="">Todas</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Buscar</label>
+          <input type="text" id="pub-busca" placeholder="Título, resumo…" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadPublicacoes()">Buscar</button>
+    </div>
+    <div id="pub-count" class="pub-count"></div>
+    <div id="pub-grid" class="pub-grid"></div>
+  </section>
+
+  <!-- ── ACOMPANHAMENTO DIÁRIO ── -->
+  <section id="diario" class="page-section">
+    <div class="section-header"><h2>📊 Acompanhamento Diário de Nível</h2></div>
+    <div class="info-card">
+      📌 Comparação entre datas consecutivas: variações de nível, volume e distância para verter.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group" style="flex:2">
+          <label>Reservatório(s)</label>
+          <select id="diario-sel-res" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label>Data Anterior</label>
+          <input type="date" id="diario-prev-date" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadDiario()">Aplicar</button>
+      <button class="btn-secondary" onclick="exportDiarioCSV()">⬇️ CSV</button>
+      <button class="btn-secondary" onclick="exportDiarioHTML()">🌐 HTML</button>
+    </div>
+
+    <div id="diario-labels" class="diario-labels"></div>
+    <div class="table-wrapper" id="diario-table"></div>
+
+    <div class="chart-card" style="margin-top:1.5rem">
+      <h3>📈 Δ Nível (m)</h3>
+      <canvas id="chart-diario-nivel" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>💧 Volume vs Capacidade (m³)</h3>
+      <canvas id="chart-diario-vol" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>📦 Δ Volume (m³)</h3>
+      <canvas id="chart-diario-delvol" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>🌊 Distância para Verter (m)</h3>
+      <canvas id="chart-diario-verter" height="120"></canvas>
+    </div>
+  </section>
+
+  <!-- ── DOCUMENTOS ── -->
+  <section id="docs" class="page-section">
+    <div class="section-header"><h2>📜 Documentos para Download</h2></div>
+    <div class="info-card">
+      📌 Atas e apresentações das reuniões de operação, organizadas por operação e reservatório.
+    </div>
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group" style="flex:2">
+          <label>Operação</label>
+          <select id="docs-sel-op" multiple></select>
+        </div>
+        <div class="filter-group" style="flex:2">
+          <label>Reservatório/Sistema</label>
+          <select id="docs-sel-res" multiple></select>
+        </div>
+        <div class="filter-group" style="flex:2">
+          <label>Buscar</label>
+          <input type="text" id="docs-busca" placeholder="Texto livre…" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadDocs()">Filtrar</button>
+    </div>
+    <div id="docs-count" class="pub-count"></div>
+    <div class="table-wrapper" id="docs-table"></div>
+
+    <div class="chart-card" style="margin-top:1.5rem">
+      <h3>📊 Vazão Média por Operação e Reservatório</h3>
+      <canvas id="chart-docs-vazao" height="120"></canvas>
+    </div>
+  </section>
+
+  <!-- ── FALE CONOSCO ── -->
+  <section id="contato" class="page-section">
+    <div class="section-header"><h2>✉️ Fale Conosco</h2></div>
+    <div class="info-card">
+      Preencha o formulário abaixo para entrar em contato com o Comitê de Bacia.
+    </div>
+    <form class="contact-form" id="contact-form" onsubmit="submitContato(event)">
+      <fieldset>
+        <legend>1. Dados Pessoais/Institucionais</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome Completo *</label>
+            <input type="text" id="c-nome" required placeholder="Seu nome completo" />
+          </div>
+          <div class="form-group">
+            <label>E-mail *</label>
+            <input type="email" id="c-email" required placeholder="seu@email.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Telefone/Celular</label>
+            <input type="tel" id="c-telefone" placeholder="(85) 91234-5678" />
+          </div>
+          <div class="form-group">
+            <label>CPF/CNPJ</label>
+            <input type="text" id="c-cpf" placeholder="Para demandas institucionais" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cidade/Estado *</label>
+          <input type="text" id="c-cidade" required placeholder="Ex: Quixeramobim/CE" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. Tipo de Contato</legend>
+        <div class="radio-group">
+          <label><input type="radio" name="tipo" value="Solicitação de informação" checked /> Solicitação de informação</label>
+          <label><input type="radio" name="tipo" value="Denúncia/reclamação ambiental" /> Denúncia/reclamação ambiental</label>
+          <label><input type="radio" name="tipo" value="Sugestão para a gestão da bacia" /> Sugestão para a gestão da bacia</label>
+          <label><input type="radio" name="tipo" value="Proposta de parceria/projeto" /> Proposta de parceria/projeto</label>
+          <label><input type="radio" name="tipo" value="Imprensa/assessoria de comunicação" /> Imprensa/assessoria de comunicação</label>
+          <label><input type="radio" name="tipo" value="Outro" /> Outro</label>
+        </div>
+        <div class="form-group" id="outro-wrap" style="display:none">
+          <label>Especifique</label>
+          <input type="text" id="c-outro" placeholder="Descreva o tipo de contato" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. Mensagem</legend>
+        <div class="form-group">
+          <label>Assunto *</label>
+          <input type="text" id="c-assunto" required placeholder="Ex: Poluição no Rio X" />
+        </div>
+        <div class="form-group">
+          <label>Descrição detalhada *</label>
+          <textarea id="c-descricao" required rows="6" maxlength="2000" placeholder="Descreva detalhadamente sua mensagem…"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. Canal de Resposta Preferencial</legend>
+        <div class="radio-group">
+          <label><input type="radio" name="canal" value="E-mail" checked /> E-mail</label>
+          <label><input type="radio" name="canal" value="Telefone" /> Telefone</label>
+          <label><input type="radio" name="canal" value="Correio físico" /> Correio físico</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. Autorizações</legend>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="c-lgpd" required />
+            Concordo com o tratamento dos dados pessoais conforme a LGPD. *
+          </label>
+          <label>
+            <input type="checkbox" id="c-news" />
+            Desejo receber informativos sobre o Comitê (opcional).
+          </label>
+        </div>
+      </fieldset>
+
+      <div id="contato-msg" class="form-msg"></div>
+      <button type="submit" class="btn-primary btn-submit">Enviar Mensagem</button>
+    </form>
+  </section>
+
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="site-footer">
+  <div class="footer-logos">
+    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH" />
+    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH" />
+  </div>
+  <div class="footer-info">
+    <strong>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</strong>
+  </div>
+  <div class="footer-contact">
+    <span>📧 comite.banabuiu@cogerh.com.br</span>
+    <span class="divider">|</span>
+    <span>📞 (85) 3513-9055</span>
+  </div>
+  <div class="footer-address">
+    🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
+  </div>
+  <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+</footer>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay" style="display:none">
+  <div class="spinner"></div>
+</div>
+
+<script src="/static/maps.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
