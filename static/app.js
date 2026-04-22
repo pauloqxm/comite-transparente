@@ -8,6 +8,7 @@
    ═══════════════════════════════════════════════════════ */
 const _charts = {};
 let _painelAllData = null;  // cache de todos os dados do painel (sem filtro de reservatório/operação)
+let _sedesAllData  = null;  // cache de todos os dados de sedes (filtragem client-side)
 let _acudesData = null;
 let _diarioData = null;
 let _docsData   = null;
@@ -44,7 +45,7 @@ function navigate(sectionId) {
   /* Lazy-load first visit */
   if (sectionId === 'painel'      && !_painelAllData) loadPainel();
   if (sectionId === 'acudes'      && !_acudesData)   loadAcudes();
-  if (sectionId === 'sedes')                         loadSedes();
+  if (sectionId === 'sedes'       && !_sedesAllData)  loadSedes();
   if (sectionId === 'comite')                        loadComite();
   if (sectionId === 'publicacoes')                   loadPublicacoes();
   if (sectionId === 'diario'      && !_diarioData)   loadDiario();
@@ -488,76 +489,89 @@ function exportCSV(section) {
 async function loadSedes() {
   showLoading();
   try {
-    const result = await apiFetch('/api/dados/municipios');
-    const meta = result.meta || {};
-    const data = Array.isArray(result.data) ? result.data : [];
-    const norm = (v) => String(v ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
+    /* ── 1. Busca dados da API uma única vez (cache em _sedesAllData) ── */
+    if (!_sedesAllData) {
+      const result = await apiFetch('/api/dados/municipios');
+      _sedesAllData = {
+        data: Array.isArray(result.data) ? result.data : [],
+        meta: result.meta || {},
+      };
+    }
+    const { data, meta } = _sedesAllData;
 
-    /* Populate selects */
+    /* ── 2. Normalização de string para comparação robusta (acento/caixa) ── */
+    const norm = (v) => String(v ?? '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ').trim().toLowerCase();
+
+    /* ── 3. Conversão numérica segura: null nunca vira 0 ── */
+    const toNum = (v) => {
+      if (v == null || v === '' || v === '-') return null;
+      const n = Number(String(v).replace(',', '.'));
+      return Number.isFinite(n) ? n : null;
+    };
+
+    /* ── 4. Popula os selects na primeira visita ── */
     const selAcude  = document.getElementById('sedes-sel-acude');
     const selMun    = document.getElementById('sedes-sel-mun');
     const selRegiao = document.getElementById('sedes-sel-regiao');
     if (selAcude.options.length <= 1) {
-      (meta.acudes || []).forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; selAcude.appendChild(o); });
-      (meta.municipios || []).forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; selMun.appendChild(o); });
-      (meta.regioes || []).forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; selRegiao.appendChild(o); });
+      (meta.acudes    || []).forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; selAcude.appendChild(o); });
+      (meta.municipios|| []).forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; selMun.appendChild(o); });
+      (meta.regioes   || []).forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; selRegiao.appendChild(o); });
     }
 
+    /* ── 5. Filtragem client-side (normalizada) ── */
     const acudeF  = selAcude.value;
     const munF    = selMun.value;
     const regiaoF = selRegiao.value;
 
-    let df = data;
-    if (acudeF)  df = df.filter(r => norm(r.Açude) === norm(acudeF));
-    if (munF)    df = df.filter(r => norm(r.Município) === norm(munF));
-    if (regiaoF) df = df.filter(r => norm(r['Região Hidrográfica']) === norm(regiaoF));
+    let df = data.slice();
+    if (acudeF)  df = df.filter(r => norm(r.Açude)                    === norm(acudeF));
+    if (munF)    df = df.filter(r => norm(r.Município)                 === norm(munF));
+    if (regiaoF) df = df.filter(r => norm(r['Região Hidrográfica'])    === norm(regiaoF));
 
-    /* KPIs */
+    /* ── 6. KPIs ── */
     const acudes = new Set(df.map(r => r.Açude)).size;
     const munic  = new Set(df.map(r => r.Município)).size;
     renderKPIs('sedes-kpis', [
-      { label: 'Açudes', value: acudes },
+      { label: 'Açudes',    value: acudes },
       { label: 'Municípios', value: munic },
       { label: 'Registros', value: df.length },
     ]);
 
-    /* Mapa */
+    /* ── 7. Mapa ── */
     initMapSedes(df);
 
-    /* Charts */
+    /* ── 8. Preparação dos dados para os gráficos ── */
     const datapoints = df.filter(r => r.Data && r.Açude).sort((a,b) => a.Data.localeCompare(b.Data));
-    const acudesU = [...new Set(datapoints.map(r => r.Açude))];
-    const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2','#7f7f7f','#bcbd22'];
-
+    const acudesU    = [...new Set(datapoints.map(r => r.Açude))];
+    const COLORS     = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2','#7f7f7f','#bcbd22'];
     const sedesLabels = [...new Set(datapoints.map(r => r.Data).filter(Boolean))].sort();
+
     const colorWithAlpha = (hex, alpha) => {
       const h = String(hex || '').replace('#', '');
       if (h.length !== 6) return hex;
-      const r = parseInt(h.slice(0, 2), 16);
-      const g = parseInt(h.slice(2, 4), 16);
-      const b = parseInt(h.slice(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      const [r2, g2, b2] = [0,2,4].map(i => parseInt(h.slice(i, i+2), 16));
+      return `rgba(${r2}, ${g2}, ${b2}, ${alpha})`;
     };
 
+    /* ── 9. Gráfico de cotas: Simulada x Realizada por açude ── */
     destroyChart('chart-sedes-cota');
     const ctx1 = document.getElementById('chart-sedes-cota').getContext('2d');
     const cotaDatasets = [];
     acudesU.forEach((acude, i) => {
-      const base = datapoints.filter(r => r.Açude === acude).sort((a, b) => a.Data.localeCompare(b.Data));
-      const simByDate = {};
+      const base = datapoints.filter(r => r.Açude === acude);
+      const simByDate  = {};
       const realByDate = {};
       const diffByDate = {};
       base.forEach((row) => {
-        const sim = Number(row['Cota Inicial (m)']);
-        const real = Number(row['Cota Dia (m)']);
-        simByDate[row.Data] = Number.isFinite(sim) ? sim : null;
-        realByDate[row.Data] = Number.isFinite(real) ? real : null;
-        diffByDate[row.Data] = (Number.isFinite(sim) && Number.isFinite(real)) ? (real - sim) : null;
+        /* toNum() garante que null/vazio nunca seja convertido a 0 */
+        const sim  = toNum(row['Cota Inicial (m)']);
+        const real = toNum(row['Cota Dia (m)']);
+        simByDate[row.Data]  = sim;
+        realByDate[row.Data] = real;
+        diffByDate[row.Data] = (sim != null && real != null) ? (real - sim) : null;
       });
       const baseColor = COLORS[i % COLORS.length];
       cotaDatasets.push({
@@ -568,11 +582,8 @@ async function loadSedes() {
         backgroundColor: colorWithAlpha(baseColor, 0.16),
         borderWidth: 2,
         borderDash: [6, 4],
-        tension: .2,
-        pointRadius: 2.5,
-        pointHoverRadius: 5,
-        spanGaps: true,
-        fill: false,
+        tension: .2, pointRadius: 2.5, pointHoverRadius: 5,
+        spanGaps: false, fill: false,
       });
       cotaDatasets.push({
         label: `${acude} - Cota Realizada (m)`,
@@ -581,11 +592,8 @@ async function loadSedes() {
         borderColor: colorWithAlpha(baseColor, 0.95),
         backgroundColor: colorWithAlpha(baseColor, 0.2),
         borderWidth: 2.2,
-        tension: .2,
-        pointRadius: 2.5,
-        pointHoverRadius: 5,
-        spanGaps: true,
-        fill: false,
+        tension: .2, pointRadius: 2.5, pointHoverRadius: 5,
+        spanGaps: false, fill: false,
       });
     });
     _charts['chart-sedes-cota'] = new Chart(ctx1, {
