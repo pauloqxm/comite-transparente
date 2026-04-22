@@ -196,23 +196,32 @@ async function loadPainel() {
     const reservs = [...new Set(df.map(r => r['Reservatório Monitorado']).filter(Boolean))];
     const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2'];
 
+    const painelLabels = [...new Set(df.map(d => d.Data).filter(Boolean))].sort();
     destroyChart('chart-vazao-evolucao');
     const ctx1 = document.getElementById('chart-vazao-evolucao').getContext('2d');
     _charts['chart-vazao-evolucao'] = new Chart(ctx1, {
       type: 'line',
       data: {
+        labels: painelLabels.map(fmtDate),
         datasets: reservs.map((r, i) => {
-          const pts = df.filter(d => d['Reservatório Monitorado'] === r)
-            .sort((a,b) => a.Data.localeCompare(b.Data))
-            .map(d => ({ x: d.Data, y: d['Vazão Operada'] }));
-          return { label: r, data: pts, borderColor: COLORS[i % COLORS.length], backgroundColor: 'transparent', pointRadius: 3, tension: .2 };
+          const byDate = {};
+          df.filter(d => d['Reservatório Monitorado'] === r).forEach(d => { byDate[d.Data] = d['Vazão Operada']; });
+          return {
+            label: r,
+            data: painelLabels.map(dt => byDate[dt] ?? null),
+            borderColor: COLORS[i % COLORS.length],
+            backgroundColor: 'transparent',
+            pointRadius: 3,
+            tension: .2,
+            spanGaps: true,
+          };
         }),
       },
       options: {
         responsive: true,
         plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 3)} ${unidade}` } } },
         scales: {
-          x: { type: 'time', time: { unit: 'month', displayFormats: { month: 'MM/yyyy' } }, title: { display: true, text: 'Data' } },
+          x: { title: { display: true, text: 'Data' } },
           y: { title: { display: true, text: `Vazão (${unidade})` } },
         },
       },
@@ -414,11 +423,12 @@ async function loadAcudes() {
     _charts['chart-acudes-volume'] = new Chart(ctx, {
       type: 'line',
       data: {
+        labels: datesPivot.map(fmtDate),
         datasets: reservsPivot.map((r, i) => ({
           label: r,
           data: datesPivot.map(d => {
             const row = df.find(x => x.Reservatório === r && x['Data de Coleta'] === d);
-            return { x: d, y: row?.Volume ?? null };
+            return row?.Volume ?? null;
           }),
           borderColor: COLORS[i % COLORS.length],
           backgroundColor: 'transparent',
@@ -429,7 +439,7 @@ async function loadAcudes() {
         responsive: true,
         plugins: { legend: { position: 'bottom' } },
         scales: {
-          x: { type: 'time', time: { unit: 'month', displayFormats: { month: 'MM/yyyy' } } },
+          x: { title: { display: true, text: 'Data' } },
           y: { title: { display: true, text: 'Volume (hm³)' } },
         },
       },
@@ -492,19 +502,29 @@ async function loadSedes() {
     const acudesU = [...new Set(datapoints.map(r => r.Açude))];
     const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd'];
 
+    const sedesLabels = [...new Set(datapoints.map(r => r.Data).filter(Boolean))].sort();
     destroyChart('chart-sedes-cota');
     const ctx1 = document.getElementById('chart-sedes-cota').getContext('2d');
     _charts['chart-sedes-cota'] = new Chart(ctx1, {
       type: 'line',
       data: {
-        datasets: acudesU.map((a, i) => ({
-          label: a,
-          data: datapoints.filter(r => r.Açude === a).map(r => ({ x: r.Data, y: r['Cota Dia (m)'] })),
-          borderColor: COLORS[i % COLORS.length], backgroundColor: 'transparent', tension: .2, pointRadius: 2,
-        })),
+        labels: sedesLabels.map(fmtDate),
+        datasets: acudesU.map((a, i) => {
+          const byDate = {};
+          datapoints.filter(r => r.Açude === a).forEach(r => { byDate[r.Data] = r['Cota Dia (m)']; });
+          return {
+            label: a,
+            data: sedesLabels.map(dt => byDate[dt] ?? null),
+            borderColor: COLORS[i % COLORS.length],
+            backgroundColor: 'transparent',
+            tension: .2,
+            pointRadius: 2,
+            spanGaps: true,
+          };
+        }),
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom' } },
-        scales: { x: { type: 'time', time: { unit: 'month', displayFormats: { month: 'MM/yyyy' } } },
+        scales: { x: { title: { display: true, text: 'Data' } },
           y: { title: { display: true, text: 'Cota (m)' } } } },
     });
 
@@ -513,14 +533,23 @@ async function loadSedes() {
     _charts['chart-sedes-volume'] = new Chart(ctx2, {
       type: 'line',
       data: {
-        datasets: acudesU.map((a, i) => ({
-          label: a,
-          data: datapoints.filter(r => r.Açude === a).map(r => ({ x: r.Data, y: r['Volume (m³)'] })),
-          borderColor: COLORS[i % COLORS.length], backgroundColor: 'transparent', tension: .2, pointRadius: 2,
-        })),
+        labels: sedesLabels.map(fmtDate),
+        datasets: acudesU.map((a, i) => {
+          const byDate = {};
+          datapoints.filter(r => r.Açude === a).forEach(r => { byDate[r.Data] = r['Volume (m³)']; });
+          return {
+            label: a,
+            data: sedesLabels.map(dt => byDate[dt] ?? null),
+            borderColor: COLORS[i % COLORS.length],
+            backgroundColor: 'transparent',
+            tension: .2,
+            pointRadius: 2,
+            spanGaps: true,
+          };
+        }),
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom' } },
-        scales: { x: { type: 'time', time: { unit: 'month', displayFormats: { month: 'MM/yyyy' } } },
+        scales: { x: { title: { display: true, text: 'Data' } },
           y: { title: { display: true, text: 'Volume (m³)' } } } },
     });
 
