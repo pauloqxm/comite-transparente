@@ -491,6 +491,12 @@ async function loadSedes() {
     const result = await apiFetch('/api/dados/municipios');
     const meta = result.meta || {};
     const data = Array.isArray(result.data) ? result.data : [];
+    const norm = (v) => String(v ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
 
     /* Populate selects */
     const selAcude  = document.getElementById('sedes-sel-acude');
@@ -507,9 +513,9 @@ async function loadSedes() {
     const regiaoF = selRegiao.value;
 
     let df = data;
-    if (acudeF)  df = df.filter(r => r.Açude === acudeF);
-    if (munF)    df = df.filter(r => r.Município === munF);
-    if (regiaoF) df = df.filter(r => r['Região Hidrográfica'] === regiaoF);
+    if (acudeF)  df = df.filter(r => norm(r.Açude) === norm(acudeF));
+    if (munF)    df = df.filter(r => norm(r.Município) === norm(munF));
+    if (regiaoF) df = df.filter(r => norm(r['Região Hidrográfica']) === norm(regiaoF));
 
     /* KPIs */
     const acudes = new Set(df.map(r => r.Açude)).size;
