@@ -120,13 +120,14 @@ function addPopupOnClick(map, layerId, popupFn) {
 
 /* ═══════════════════════════════════════════════════════
    MAPA DO PAINEL DE VAZÕES
+   latestByRes: { [nomeReservatorio]: ultimaLinhaVazoes }
    ═══════════════════════════════════════════════════════ */
-async function initMapPainel(rows) {
+async function initMapPainel(latestByRes) {
   const map = getOrCreateMap('map-painel', { center: [-39.5, -5.2], zoom: 8 });
   onMapReady(map, async (m) => {
     clearLayers(m, 'painel-');
 
-    /* Camada bacia */
+    /* Bacia hidrográfica */
     const bacia = await fetchGeoJSON('bacia');
     if (bacia) {
       m.addSource('painel-bacia', { type: 'geojson', data: bacia });
@@ -142,11 +143,53 @@ async function initMapPainel(rows) {
         paint: { 'line-color': '#1e88e5', 'line-width': 1.2 } });
     }
 
-    /* Pontos: reservatórios filtrados (dados da planilha) */
-    if (rows && rows.length > 0) {
-      const fcReservatorios = buildFeatureCollectionFromRows(rows);
-      if (fcReservatorios) {
-        m.addSource('painel-reservatorios', { type: 'geojson', data: fcReservatorios });
+    /* Pontos: busca os açudes da planilha de reservatórios (tem Latitude/Longitude confiáveis),
+       depois cruza com os dados de vazão mais recentes por nome. */
+    try {
+      const resp = await fetch('/api/dados/acudes');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const acudesResult = await resp.json();
+      const acudesData   = acudesResult.data || [];
+
+      /* Deduplica por reservatório (mantém o mais recente) */
+      const seen  = new Set();
+      const dedup = acudesData.filter(r => {
+        if (seen.has(r.Reservatório)) return false;
+        seen.add(r.Reservatório);
+        return true;
+      });
+
+      const features = dedup
+        .filter(r => r.Latitude != null && r.Longitude != null)
+        .map(r => {
+          /* Cruza com última vazão — nome pode ter grafias ligeiramente diferentes */
+          const resNorm = (r.Reservatório || '').toLowerCase().trim();
+          const vazEntry = latestByRes
+            ? Object.entries(latestByRes).find(([k]) => {
+                const kn = k.toLowerCase().trim();
+                return kn === resNorm || kn.includes(resNorm) || resNorm.includes(kn);
+              })
+            : null;
+          const vaz = vazEntry ? vazEntry[1] : null;
+
+          return {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [r.Longitude, r.Latitude] },
+            properties: {
+              label:      r.Reservatório  || '—',
+              municipio:  r['Município']  || '',
+              percentual: r.Percentual    ?? null,
+              volume:     r.Volume        ?? null,
+              vazao:      vaz ? vaz['Vazão Operada'] : null,
+              data_vazao: vaz ? vaz.Data  : null,
+              operacao:   vaz ? vaz['Operação'] : null,
+            },
+          };
+        });
+
+      if (features.length > 0) {
+        const fc = { type: 'FeatureCollection', features };
+        m.addSource('painel-reservatorios', { type: 'geojson', data: fc });
         m.addLayer({
           id: 'painel-res-circle', type: 'circle', source: 'painel-reservatorios',
           paint: {
@@ -154,67 +197,47 @@ async function initMapPainel(rows) {
             'circle-color': '#1976d2',
             'circle-stroke-width': 2,
             'circle-stroke-color': '#fff',
-          }
+          },
         });
         m.addLayer({
           id: 'painel-res-label', type: 'symbol', source: 'painel-reservatorios',
           layout: {
-            'text-field': ['get', 'label'],
-            'text-size': 11,
-            'text-offset': [0, 1.4],
-            'text-anchor': 'top',
+            'text-field':   ['get', 'label'],
+            'text-size':    11,
+            'text-offset':  [0, 1.4],
+            'text-anchor':  'top',
           },
-          paint: { 'text-color': '#1a2232', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
+          paint: { 'text-color': '#1a2232', 'text-halo-color': '#fff', 'text-halo-width': 1.5 },
         });
-        addPopupOnClick(m, 'painel-res-circle', (p) => `<div class="map-popup">
-          <div class="map-popup-title">${p.label || '—'}</div>
-          <div class="map-popup-row"><span class="map-popup-label">Vazão:</span><span class="map-popup-value">${p.vazao != null ? Number(p.vazao).toFixed(3) + ' L/s' : '—'}</span></div>
-          <div class="map-popup-row"><span class="map-popup-label">Data:</span><span class="map-popup-value">${p.data || '—'}</span></div>
-        </div>`);
-
-        /* Fit bounds */
-        const coords = fcReservatorios.features.map(f => f.geometry.coordinates);
-        if (coords.length > 0) fitMapToCoords(m, coords);
+        addPopupOnClick(m, 'painel-res-circle', (p) => {
+          const vazStr = p.vazao != null ? `${Number(p.vazao).toFixed(3)} L/s` : '—';
+          const dataStr = p.data_vazao ? fmtDateProp(p.data_vazao) : '—';
+          return `<div class="map-popup">
+            <div class="map-popup-title">${p.label || '—'}</div>
+            ${p.municipio ? `<div class="map-popup-row"><span class="map-popup-label">Município:</span><span class="map-popup-value">${p.municipio}</span></div>` : ''}
+            <div class="map-popup-row"><span class="map-popup-label">Vazão:</span><span class="map-popup-value">${vazStr}</span></div>
+            <div class="map-popup-row"><span class="map-popup-label">Data:</span><span class="map-popup-value">${dataStr}</span></div>
+            ${p.operacao ? `<div class="map-popup-row"><span class="map-popup-label">Operação:</span><span class="map-popup-value">${p.operacao}</span></div>` : ''}
+            ${p.percentual != null ? `<div class="map-popup-row"><span class="map-popup-label">Nível:</span><span class="map-popup-value">${Number(p.percentual).toFixed(2)}%</span></div>` : ''}
+          </div>`;
+        });
+        fitMapToCoords(m, features.map(f => f.geometry.coordinates));
       }
+    } catch (err) {
+      console.warn('initMapPainel: erro ao carregar açudes', err);
     }
 
-    /* Fallback: usa pontos do GeoJSON quando não houver coordenadas na planilha */
-    if (!rows || rows.length === 0) {
-      const acudesGeo = await fetchGeoJSON('acudes');
-      if (acudesGeo) {
-        m.addSource('painel-acudes-fallback', { type: 'geojson', data: acudesGeo });
-        m.addLayer({
-          id: 'painel-acudes-fallback-circle',
-          type: 'circle',
-          source: 'painel-acudes-fallback',
-          paint: {
-            'circle-radius': 7,
-            'circle-color': '#2e7d32',
-            'circle-stroke-width': 1.5,
-            'circle-stroke-color': '#fff',
-          },
-        });
-        m.addLayer({
-          id: 'painel-acudes-fallback-label',
-          type: 'symbol',
-          source: 'painel-acudes-fallback',
-          layout: {
-            'text-field': ['coalesce', ['get', 'Name'], 'Açude'],
-            'text-size': 10,
-            'text-offset': [0, 1.3],
-            'text-anchor': 'top',
-          },
-          paint: { 'text-color': '#1a2232', 'text-halo-color': '#fff', 'text-halo-width': 1.4 },
-        });
-        addPopupOnClick(m, 'painel-acudes-fallback-circle', (p) => `<div class="map-popup">
-          <div class="map-popup-title">${p.Name || 'Açude'}</div>
-        </div>`);
-      }
-    }
-
-    // Garante render correto quando a seção estava oculta antes de abrir
+    /* Garante render correto quando a seção estava oculta antes de abrir */
     setTimeout(() => m.resize(), 50);
   });
+}
+
+/* helper local: formata "YYYY-MM-DD" → "DD/MM/YYYY" */
+function fmtDateProp(d) {
+  if (!d) return '—';
+  const parts = String(d).split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return d;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -409,21 +432,6 @@ function fitMapToCoords(map, coords) {
   } catch { /* ignore */ }
 }
 
-function buildFeatureCollectionFromRows(rows) {
-  const features = rows
-    .filter(r => r.lat != null && r.lon != null)
-    .map(r => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [r.lon, r.lat] },
-      properties: {
-        label: r['Reservatório Monitorado'] || r.Reservatório || '—',
-        vazao: r['Vazão Operada'],
-        data: r.Data,
-      },
-    }));
-  if (features.length === 0) return null;
-  return { type: 'FeatureCollection', features };
-}
 
 function resizeAllMaps() {
   Object.values(_maps).forEach((map) => {

@@ -7,7 +7,7 @@
    Globals & state
    ═══════════════════════════════════════════════════════ */
 const _charts = {};
-let _painelData = null;
+let _painelAllData = null;  // cache de todos os dados do painel (sem filtro de reservatório/operação)
 let _acudesData = null;
 let _diarioData = null;
 let _docsData   = null;
@@ -42,7 +42,7 @@ function navigate(sectionId) {
   }
 
   /* Lazy-load first visit */
-  if (sectionId === 'painel'      && !_painelData)   loadPainel();
+  if (sectionId === 'painel'      && !_painelAllData) loadPainel();
   if (sectionId === 'acudes'      && !_acudesData)   loadAcudes();
   if (sectionId === 'sedes')                         loadSedes();
   if (sectionId === 'comite')                        loadComite();
@@ -160,34 +160,49 @@ function qs(params) {
 async function loadPainel() {
   showLoading();
   try {
-    const resSel = document.getElementById('painel-sel-res').value;
-    const opSel  = document.getElementById('painel-sel-op').value;
-    const params = {
-      reservatorio: resSel && resSel !== '__all__' ? [resSel] : [],
-      operacao:     opSel && opSel !== '__all__' ? [opSel] : [],
-      unidade:      document.getElementById('painel-sel-unidade').value,
-      data_inicio:  document.getElementById('painel-data-ini').value,
-      data_fim:     document.getElementById('painel-data-fim').value,
-    };
-    const result = await apiFetch('/api/dados/vazoes' + qs(params));
-    _painelData = result;
-
-    /* Populate selects on first load */
-    if (!document.getElementById('painel-sel-res').options.length) {
-      const resOpt = ['__all__', ...(result.meta.reservatorios || [])];
-      const opOpt  = ['__all__', ...(result.meta.operacoes || [])];
-      populateSelect('painel-sel-res', resOpt, false);
-      populateSelect('painel-sel-op', opOpt, false);
-      document.querySelector('#painel-sel-res option[value="__all__"]').textContent = 'Todos';
-      document.querySelector('#painel-sel-op option[value="__all__"]').textContent = 'Todas';
-      document.getElementById('painel-sel-res').value = '__all__';
-      document.getElementById('painel-sel-op').value = '__all__';
+    /* ── 1. Busca todos os dados uma única vez (sem filtro de reservatório/operação)
+          Força re-fetch apenas se a unidade mudar ── */
+    const curUnit = document.getElementById('painel-sel-unidade').value;
+    if (!_painelAllData) {
+      const result = await apiFetch('/api/dados/vazoes');
+      _painelAllData = result;
+      _painelAllData._cachedUnit = 'Ls';
     }
 
-    const df = result.data;
-    const unidade = result.meta?.unidade || 'L/s';
+    /* ── 2. Popula os selects na primeira visita ── */
+    if (!document.getElementById('painel-sel-res').options.length) {
+      const resOpt = ['__all__', ...(_painelAllData.meta.reservatorios || [])];
+      const opOpt  = ['__all__', ...(_painelAllData.meta.operacoes || [])];
+      populateSelect('painel-sel-res', resOpt, false);
+      populateSelect('painel-sel-op',  opOpt,  false);
+      document.querySelector('#painel-sel-res option[value="__all__"]').textContent = 'Todos';
+      document.querySelector('#painel-sel-op option[value="__all__"]').textContent  = 'Todas';
+      document.getElementById('painel-sel-res').value = '__all__';
+      document.getElementById('painel-sel-op').value  = '__all__';
+    }
 
-    /* KPIs */
+    /* ── 3. Filtragem 100% client-side ── */
+    const resSel  = document.getElementById('painel-sel-res').value;
+    const opSel   = document.getElementById('painel-sel-op').value;
+    const dateIni = document.getElementById('painel-data-ini').value;
+    const dateFim = document.getElementById('painel-data-fim').value;
+
+    let df = _painelAllData.data.slice();
+    if (resSel && resSel !== '__all__') df = df.filter(r => r['Reservatório Monitorado'] === resSel);
+    if (opSel  && opSel  !== '__all__') df = df.filter(r => r['Operação'] === opSel);
+    if (dateIni) df = df.filter(r => r.Data && r.Data >= dateIni);
+    if (dateFim) df = df.filter(r => r.Data && r.Data <= dateFim);
+
+    /* ── 4. Conversão de unidade client-side ── */
+    const unidade = curUnit === 'm3s' ? 'm³/s' : 'L/s';
+    if (curUnit === 'm3s') {
+      df = df.map(r => ({
+        ...r,
+        'Vazão Operada': r['Vazão Operada'] != null ? r['Vazão Operada'] / 1000 : null,
+      }));
+    }
+
+    /* ── 5. KPIs ── */
     const reservCount = new Set(df.map(r => r['Reservatório Monitorado'])).size;
     const dates = df.map(r => r.Data).filter(Boolean).sort();
     const diasCount = dates.length >= 2
@@ -200,10 +215,9 @@ async function loadPainel() {
       { label: 'Unidade',       value: unidade },
     ]);
 
-    /* Chart: evolução */
+    /* ── 6. Gráfico: evolução da vazão ── */
     const reservs = [...new Set(df.map(r => r['Reservatório Monitorado']).filter(Boolean))];
     const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2'];
-
     const painelLabels = [...new Set(df.map(d => d.Data).filter(Boolean))].sort();
     destroyChart('chart-vazao-evolucao');
     const ctx1 = document.getElementById('chart-vazao-evolucao').getContext('2d');
@@ -227,7 +241,10 @@ async function loadPainel() {
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 3)} ${unidade}` } } },
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 3)} ${unidade}` } },
+        },
         scales: {
           x: { title: { display: true, text: 'Data' } },
           y: { title: { display: true, text: `Vazão (${unidade})` } },
@@ -235,7 +252,7 @@ async function loadPainel() {
       },
     });
 
-    /* Chart: volume por reservatório */
+    /* ── 7. Gráfico: volume por reservatório ── */
     const volumes = calcVolumes(df);
     destroyChart('chart-vazao-volume');
     const ctx2 = document.getElementById('chart-vazao-volume').getContext('2d');
@@ -252,11 +269,11 @@ async function loadPainel() {
       },
     });
 
-    /* Chart: média mensal */
+    /* ── 8. Gráfico: média mensal ── */
     const mediaMensal = calcMediaMensal(df);
     destroyChart('chart-vazao-media');
     const ctx3 = document.getElementById('chart-vazao-media').getContext('2d');
-    const mmLabels = [...new Set(mediaMensal.map(m => m.mes))];
+    const mmLabels  = [...new Set(mediaMensal.map(m => m.mes))];
     const mmReservs = [...new Set(mediaMensal.map(m => m.res))];
     _charts['chart-vazao-media'] = new Chart(ctx3, {
       type: 'bar',
@@ -279,9 +296,9 @@ async function loadPainel() {
       },
     });
 
-    /* Tabela */
+    /* ── 9. Tabela ── */
     const headers = ['Data', 'Reservatório', 'Operação', `Vazão (${unidade})`];
-    const tableRows = df.sort((a,b) => b.Data.localeCompare(a.Data)).map(r => [
+    const tableRows = df.slice().sort((a, b) => (b.Data || '').localeCompare(a.Data || '')).map(r => [
       fmtDate(r.Data),
       r['Reservatório Monitorado'] || '—',
       r.Operação || '—',
@@ -289,17 +306,16 @@ async function loadPainel() {
     ]);
     document.getElementById('painel-table').innerHTML = buildTable(headers, tableRows);
 
-    /* Mapa */
-    const mapRows = df.map(r => {
-      let lat = null, lon = null;
-      const coord = r.Coordenadas || r.Coordendas;
-      if (coord) {
-        const parts = String(coord).replace(/\s/g, '').split(',');
-        if (parts.length === 2) { lat = parseFloat(parts[0]); lon = parseFloat(parts[1]); }
+    /* ── 10. Mapa: última vazão por reservatório (usa dados brutos sem filtro de unidade) ── */
+    const latestByRes = {};
+    _painelAllData.data.forEach(r => {
+      const res = r['Reservatório Monitorado'];
+      if (!res) return;
+      if (!latestByRes[res] || (r.Data || '') > (latestByRes[res].Data || '')) {
+        latestByRes[res] = r;
       }
-      return { ...r, lat, lon };
-    }).filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lon));
-    initMapPainel(mapRows);
+    });
+    initMapPainel(latestByRes);
 
   } catch (e) {
     console.error('loadPainel:', e);
