@@ -97,9 +97,11 @@ a:hover { text-decoration: underline; }
   position: fixed; top: var(--header-h); left: 0; width: 100%; z-index: 900;
   background: var(--white);
   border-bottom: 2px solid var(--border);
-  display: flex; overflow-x: auto; gap: 0;
+  display: flex; justify-content: center; align-items: center;
+  overflow-x: auto; overflow-y: hidden; gap: 0;
   box-shadow: var(--shadow-sm);
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .tab-nav::-webkit-scrollbar { display: none; }
 .tab-btn {
@@ -387,6 +389,16 @@ table.cota-table tr:nth-child(even) td { background: #f7fee7; }
   .header-nav { display: none; }
   .hamburger { display: flex; align-items: center; }
   .header-nav.open { display: flex; flex-direction: column; position: absolute; top: var(--header-h); left: 0; width: 100%; background: #005000; padding: .75rem; gap: .5rem; z-index: 999; }
+  .tab-nav {
+    justify-content: flex-start;
+    padding: 0 .35rem;
+    scroll-snap-type: x proximity;
+  }
+  .tab-btn {
+    padding: 11px 12px;
+    font-size: 12px;
+    scroll-snap-align: start;
+  }
   .main-content { padding: 1rem .75rem 3rem; }
   .pub-grid { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); }
   .map-container { height: 340px; }
@@ -394,6 +406,8 @@ table.cota-table tr:nth-child(even) td { background: #f7fee7; }
   .kpi-value { font-size: 20px; }
 }
 @media (max-width: 420px) {
+  .tab-nav { padding: 0 .2rem; }
+  .tab-btn { padding: 10px 10px; font-size: 11px; }
   .footer-contact { flex-direction: column; gap: .2rem; }
   .footer-logos img { height: 44px; }
 }
