@@ -285,17 +285,29 @@ def compute_diario(df_raw: pd.DataFrame, reservatorios: list[str] | None = None,
     if not unique_dates:
         return {"rows": [], "prev_label": "", "curr_label": "", "prev_options": []}
 
+    # Normaliza tudo para comparação por dia (evita falhas por tipo/timestamp)
+    unique_dates = [pd.Timestamp(d).normalize() for d in unique_dates]
     data_atual = unique_dates[-1]
     prev_candidates = [d for d in unique_dates if d < data_atual]
+    prev_candidates_set = {d.date() for d in prev_candidates}
 
+    # Regra padrão: dia anterior à data atual dos dados
+    default_prev = (data_atual - pd.Timedelta(days=1)).normalize()
+    if default_prev.date() in prev_candidates_set:
+        data_anterior = default_prev
+    else:
+        data_anterior = prev_candidates[-1] if prev_candidates else None
+
+    # Se o utilizador informar uma data, tenta usar exatamente ela (por dia)
     if prev_date:
         try:
             forced = pd.to_datetime(prev_date, errors="coerce")
-            data_anterior = forced if forced in prev_candidates else (prev_candidates[-1] if prev_candidates else None)
+            if pd.notna(forced):
+                forced = pd.Timestamp(forced).normalize()
+                if forced.date() in prev_candidates_set:
+                    data_anterior = forced
         except Exception:
-            data_anterior = prev_candidates[-1] if prev_candidates else None
-    else:
-        data_anterior = prev_candidates[-1] if prev_candidates else None
+            pass
 
     def last_on_date(dfr, target):
         if target is None or pd.isna(target):

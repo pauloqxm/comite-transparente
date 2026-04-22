@@ -702,8 +702,11 @@ async function loadDiario() {
       populateSelect('diario-sel-res', result.reservatorios, true);
       [...document.getElementById('diario-sel-res').options].forEach(o => o.selected = true);
     }
-    if (result.prev_options && result.prev_options.length && !prev) {
-      document.getElementById('diario-prev-date').value = result.prev_options[0];
+    if (!prev && result.prev_label) {
+      const [dd, mm, yyyy] = result.prev_label.split('/');
+      if (dd && mm && yyyy) {
+        document.getElementById('diario-prev-date').value = `${yyyy}-${mm}-${dd}`;
+      }
     }
 
     /* Labels */
