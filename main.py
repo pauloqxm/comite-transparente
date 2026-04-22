@@ -7,13 +7,12 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from routers import geojson, dados, contato
+from routers import geojson, dados
 
 app = FastAPI(title="Portal Comitê Banabuiú", version="2.0.0")
 
 app.include_router(geojson.router, prefix="/api/geojson", tags=["geojson"])
 app.include_router(dados.router,   prefix="/api/dados",   tags=["dados"])
-app.include_router(contato.router, prefix="/api",          tags=["contato"])
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

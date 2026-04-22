@@ -68,7 +68,6 @@
   <button class="tab-btn" data-section="publicacoes">📚 Publicações</button>
   <button class="tab-btn" data-section="diario">📊 Diário</button>
   <button class="tab-btn" data-section="docs">📜 Documentos</button>
-  <button class="tab-btn" data-section="contato">✉️ Contato</button>
 </nav>
 
 <!-- ═══════════════════ MAIN ═══════════════════ -->
@@ -117,11 +116,6 @@
         <div class="home-card-icon">📚</div>
         <div class="home-card-title">Publicações</div>
         <div class="home-card-desc">Catálogo de publicações e acervo disponível.</div>
-      </div>
-      <div class="home-card" onclick="navigate('contato')">
-        <div class="home-card-icon">✉️</div>
-        <div class="home-card-title">Fale Conosco</div>
-        <div class="home-card-desc">Envie dúvidas, sugestões ou denúncias ao Comitê.</div>
       </div>
     </div>
   </section>
@@ -479,96 +473,6 @@
     </div>
   </section>
 
-  <!-- ── FALE CONOSCO ── -->
-  <section id="contato" class="page-section">
-    <div class="section-header"><h2>✉️ Fale Conosco</h2></div>
-    <div class="info-card">
-      Preencha o formulário abaixo para entrar em contato com o Comitê de Bacia.
-    </div>
-    <form class="contact-form" id="contact-form" onsubmit="submitContato(event)">
-      <fieldset>
-        <legend>1. Dados Pessoais/Institucionais</legend>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nome Completo *</label>
-            <input type="text" id="c-nome" required placeholder="Seu nome completo" />
-          </div>
-          <div class="form-group">
-            <label>E-mail *</label>
-            <input type="email" id="c-email" required placeholder="seu@email.com" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Telefone/Celular</label>
-            <input type="tel" id="c-telefone" placeholder="(85) 91234-5678" />
-          </div>
-          <div class="form-group">
-            <label>CPF/CNPJ</label>
-            <input type="text" id="c-cpf" placeholder="Para demandas institucionais" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Cidade/Estado *</label>
-          <input type="text" id="c-cidade" required placeholder="Ex: Quixeramobim/CE" />
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>2. Tipo de Contato</legend>
-        <div class="radio-group">
-          <label><input type="radio" name="tipo" value="Solicitação de informação" checked /> Solicitação de informação</label>
-          <label><input type="radio" name="tipo" value="Denúncia/reclamação ambiental" /> Denúncia/reclamação ambiental</label>
-          <label><input type="radio" name="tipo" value="Sugestão para a gestão da bacia" /> Sugestão para a gestão da bacia</label>
-          <label><input type="radio" name="tipo" value="Proposta de parceria/projeto" /> Proposta de parceria/projeto</label>
-          <label><input type="radio" name="tipo" value="Imprensa/assessoria de comunicação" /> Imprensa/assessoria de comunicação</label>
-          <label><input type="radio" name="tipo" value="Outro" /> Outro</label>
-        </div>
-        <div class="form-group" id="outro-wrap" style="display:none">
-          <label>Especifique</label>
-          <input type="text" id="c-outro" placeholder="Descreva o tipo de contato" />
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>3. Mensagem</legend>
-        <div class="form-group">
-          <label>Assunto *</label>
-          <input type="text" id="c-assunto" required placeholder="Ex: Poluição no Rio X" />
-        </div>
-        <div class="form-group">
-          <label>Descrição detalhada *</label>
-          <textarea id="c-descricao" required rows="6" maxlength="2000" placeholder="Descreva detalhadamente sua mensagem…"></textarea>
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>4. Canal de Resposta Preferencial</legend>
-        <div class="radio-group">
-          <label><input type="radio" name="canal" value="E-mail" checked /> E-mail</label>
-          <label><input type="radio" name="canal" value="Telefone" /> Telefone</label>
-          <label><input type="radio" name="canal" value="Correio físico" /> Correio físico</label>
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>5. Autorizações</legend>
-        <div class="checkbox-group">
-          <label>
-            <input type="checkbox" id="c-lgpd" required />
-            Concordo com o tratamento dos dados pessoais conforme a LGPD. *
-          </label>
-          <label>
-            <input type="checkbox" id="c-news" />
-            Desejo receber informativos sobre o Comitê (opcional).
-          </label>
-        </div>
-      </fieldset>
-
-      <div id="contato-msg" class="form-msg"></div>
-      <button type="submit" class="btn-primary btn-submit">Enviar Mensagem</button>
-    </form>
-  </section>
 
 </main>
 
