@@ -532,51 +532,67 @@ async function loadSedes() {
     /* Charts */
     const datapoints = df.filter(r => r.Data && r.Açude).sort((a,b) => a.Data.localeCompare(b.Data));
     const acudesU = [...new Set(datapoints.map(r => r.Açude))];
-    const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd'];
+    const COLORS = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2','#7f7f7f','#bcbd22'];
 
     const sedesLabels = [...new Set(datapoints.map(r => r.Data).filter(Boolean))].sort();
+    const colorWithAlpha = (hex, alpha) => {
+      const h = String(hex || '').replace('#', '');
+      if (h.length !== 6) return hex;
+      const r = parseInt(h.slice(0, 2), 16);
+      const g = parseInt(h.slice(2, 4), 16);
+      const b = parseInt(h.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
     destroyChart('chart-sedes-cota');
     const ctx1 = document.getElementById('chart-sedes-cota').getContext('2d');
-    const cotaSimuladaByDate = {};
-    const cotaRealizadaByDate = {};
-    sedesLabels.forEach((dt) => {
-      const rowsByDate = datapoints.filter(r => r.Data === dt);
-      const sims = rowsByDate.map(r => Number(r['Cota Inicial (m)'])).filter(v => !Number.isNaN(v));
-      const reals = rowsByDate.map(r => Number(r['Cota Dia (m)'])).filter(v => !Number.isNaN(v));
-      cotaSimuladaByDate[dt] = sims.length ? sims.reduce((a, b) => a + b, 0) / sims.length : null;
-      cotaRealizadaByDate[dt] = reals.length ? reals.reduce((a, b) => a + b, 0) / reals.length : null;
+    const cotaDatasets = [];
+    acudesU.forEach((acude, i) => {
+      const base = datapoints.filter(r => r.Açude === acude).sort((a, b) => a.Data.localeCompare(b.Data));
+      const simByDate = {};
+      const realByDate = {};
+      const diffByDate = {};
+      base.forEach((row) => {
+        const sim = Number(row['Cota Inicial (m)']);
+        const real = Number(row['Cota Dia (m)']);
+        simByDate[row.Data] = Number.isFinite(sim) ? sim : null;
+        realByDate[row.Data] = Number.isFinite(real) ? real : null;
+        diffByDate[row.Data] = (Number.isFinite(sim) && Number.isFinite(real)) ? (real - sim) : null;
+      });
+      const baseColor = COLORS[i % COLORS.length];
+      cotaDatasets.push({
+        label: `${acude} - Cota Simulada (m)`,
+        data: sedesLabels.map(dt => simByDate[dt] ?? null),
+        customDiff: sedesLabels.map(dt => diffByDate[dt] ?? null),
+        borderColor: colorWithAlpha(baseColor, 0.95),
+        backgroundColor: colorWithAlpha(baseColor, 0.16),
+        borderWidth: 2,
+        borderDash: [6, 4],
+        tension: .2,
+        pointRadius: 2.5,
+        pointHoverRadius: 5,
+        spanGaps: true,
+        fill: false,
+      });
+      cotaDatasets.push({
+        label: `${acude} - Cota Realizada (m)`,
+        data: sedesLabels.map(dt => realByDate[dt] ?? null),
+        customDiff: sedesLabels.map(dt => diffByDate[dt] ?? null),
+        borderColor: colorWithAlpha(baseColor, 0.95),
+        backgroundColor: colorWithAlpha(baseColor, 0.2),
+        borderWidth: 2.2,
+        tension: .2,
+        pointRadius: 2.5,
+        pointHoverRadius: 5,
+        spanGaps: true,
+        fill: false,
+      });
     });
     _charts['chart-sedes-cota'] = new Chart(ctx1, {
       type: 'line',
       data: {
         labels: sedesLabels.map(fmtDate),
-        datasets: [
-          {
-            label: 'Cota Simulada (m)',
-            data: sedesLabels.map(dt => cotaSimuladaByDate[dt] ?? null),
-            borderColor: '#1e88e5',
-            backgroundColor: 'rgba(30, 136, 229, 0.10)',
-            borderWidth: 2,
-            borderDash: [6, 4],
-            tension: .2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            spanGaps: true,
-            fill: false,
-          },
-          {
-            label: 'Cota Realizada (m)',
-            data: sedesLabels.map(dt => cotaRealizadaByDate[dt] ?? null),
-            borderColor: '#43a047',
-            backgroundColor: 'rgba(67, 160, 71, 0.10)',
-            borderWidth: 2.2,
-            tension: .2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            spanGaps: true,
-            fill: false,
-          },
-        ],
+        datasets: cotaDatasets,
       },
       options: {
         responsive: true,
@@ -587,7 +603,12 @@ async function loadSedes() {
           },
           tooltip: {
             callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 2)}`,
+              label: (ctx) => {
+                const val = ctx.parsed.y;
+                const diff = ctx.dataset.customDiff?.[ctx.dataIndex];
+                const diffTxt = (diff != null && !Number.isNaN(diff)) ? ` | Dif.: ${fmt(diff, 2)} m` : '';
+                return `${ctx.dataset.label}: ${fmt(val, 2)} m${diffTxt}`;
+              },
             },
           },
         },
