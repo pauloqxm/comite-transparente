@@ -337,6 +337,9 @@ async function initMapSedes(rows) {
       m.addLayer({ id: 'sedes-situa-line', type: 'line', source: 'sedes-situa',
         paint: { 'line-color': '#2e7d32', 'line-width': 1 } });
     }
+
+    // Garante render correto quando a seção estava oculta antes de abrir.
+    setTimeout(() => m.resize(), 50);
   });
 }
 

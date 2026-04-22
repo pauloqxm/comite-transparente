@@ -150,15 +150,24 @@ SIMULACOES_URL = "https://docs.google.com/spreadsheets/d/1C40uaNmLUeu-k_FGEPZOgF
 def load_simulacoes() -> pd.DataFrame:
     try:
         df = pd.read_csv(SIMULACOES_URL, sep=",", decimal=",")
+        df.columns = [str(c).strip() for c in df.columns]
+
+        # Compatibilidade com variações de cabeçalho da planilha.
+        if "Coordendas" not in df.columns and "Coordenadas" in df.columns:
+            df["Coordendas"] = df["Coordenadas"]
+
         colunas = [
             "Data", "Açude", "Município", "Região Hidrográfica",
             "Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)",
             "Evapor. Parcial (mm)", "Cota Interm. (m)", "Volume Interm. (m³)",
             "Liberação (m³/s)", "Liberação (m³)", "Volume Final (m³)", "Cota Final (m)", "Coordendas",
         ]
-        faltantes = [c for c in colunas if c not in df.columns]
-        if faltantes:
-            return pd.DataFrame()
+
+        # Em vez de abortar, cria colunas faltantes com NaN para manter endpoint operacional.
+        for c in colunas:
+            if c not in df.columns:
+                df[c] = pd.NA
+
         df = df[colunas].copy()
         df["Data"] = pd.to_datetime(df["Data"].astype(str).str.strip(), dayfirst=True, errors="coerce")
         df = df.dropna(subset=["Data"])

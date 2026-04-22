@@ -489,22 +489,24 @@ async function loadSedes() {
   showLoading();
   try {
     const result = await apiFetch('/api/dados/municipios');
+    const meta = result.meta || {};
+    const data = Array.isArray(result.data) ? result.data : [];
 
     /* Populate selects */
     const selAcude  = document.getElementById('sedes-sel-acude');
     const selMun    = document.getElementById('sedes-sel-mun');
     const selRegiao = document.getElementById('sedes-sel-regiao');
     if (selAcude.options.length <= 1) {
-      result.meta.acudes.forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; selAcude.appendChild(o); });
-      result.meta.municipios.forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; selMun.appendChild(o); });
-      result.meta.regioes.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; selRegiao.appendChild(o); });
+      (meta.acudes || []).forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; selAcude.appendChild(o); });
+      (meta.municipios || []).forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; selMun.appendChild(o); });
+      (meta.regioes || []).forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; selRegiao.appendChild(o); });
     }
 
     const acudeF  = selAcude.value;
     const munF    = selMun.value;
     const regiaoF = selRegiao.value;
 
-    let df = result.data;
+    let df = data;
     if (acudeF)  df = df.filter(r => r.Açude === acudeF);
     if (munF)    df = df.filter(r => r.Município === munF);
     if (regiaoF) df = df.filter(r => r['Região Hidrográfica'] === regiaoF);
