@@ -152,27 +152,52 @@ def load_simulacoes() -> pd.DataFrame:
         df = pd.read_csv(SIMULACOES_URL, sep=",", decimal=",")
         df.columns = [str(c).strip() for c in df.columns]
 
-        # Compatibilidade com variações de cabeçalho da planilha.
-        if "Coordendas" not in df.columns and "Coordenadas" in df.columns:
-            df["Coordendas"] = df["Coordenadas"]
+        norm_cols = {col: strip_accents_lower(col) for col in df.columns}
 
-        colunas = [
-            "Data", "Açude", "Município", "Região Hidrográfica",
-            "Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)",
-            "Evapor. Parcial (mm)", "Cota Interm. (m)", "Volume Interm. (m³)",
-            "Liberação (m³/s)", "Liberação (m³)", "Volume Final (m³)", "Cota Final (m)", "Coordendas",
-        ]
+        def pick_col(aliases: set[str]) -> str | None:
+            alias_norm = {strip_accents_lower(a) for a in aliases}
+            for col, ncol in norm_cols.items():
+                if ncol in alias_norm:
+                    return col
+            for col, ncol in norm_cols.items():
+                if any(a in ncol for a in alias_norm):
+                    return col
+            return None
 
-        # Em vez de abortar, cria colunas faltantes com NaN para manter endpoint operacional.
-        for c in colunas:
-            if c not in df.columns:
-                df[c] = pd.NA
+        # Mapeia variações de cabeçalho para o schema canônico usado no frontend.
+        colmap = {
+            "Data": pick_col({"Data"}),
+            "Açude": pick_col({"Açude", "Acude", "Reservatório", "Reservatorio"}),
+            "Município": pick_col({"Município", "Municipio"}),
+            "Região Hidrográfica": pick_col({"Região Hidrográfica", "Regiao Hidrografica", "Bacia"}),
+            "Cota Inicial (m)": pick_col({"Cota Inicial (m)", "Cota Simulada (m)"}),
+            "Cota Dia (m)": pick_col({"Cota Dia (m)", "Cota Realizada (m)", "Cota Atual (m)"}),
+            "Volume (m³)": pick_col({"Volume (m³)", "Volume(m³)", "Volume Observado (m³)", "Volume Observado (m3)"}),
+            "Volume (%)": pick_col({"Volume (%)", "Percentual", "%"}),
+            "Evapor. Parcial (mm)": pick_col({"Evapor. Parcial (mm)", "Evaporacao Parcial(mm)", "Evaporacao Parcial (mm)"}),
+            "Cota Interm. (m)": pick_col({"Cota Interm. (m)", "Cota Intermediária (m)", "Cota Intermediaria (m)"}),
+            "Volume Interm. (m³)": pick_col({"Volume Interm. (m³)", "Volume Intermediário (m³)", "Volume Intermediario (m³)"}),
+            "Liberação (m³/s)": pick_col({"Liberação (m³/s)", "Liberação (m³/s)", "Liberacao (m3/s)", "Vazão Liberada"}),
+            "Liberação (m³)": pick_col({"Liberação (m³)", "Liberação (m³)", "Liberacao (m3)"}),
+            "Volume Final (m³)": pick_col({"Volume Final (m³)", "Volume Final (m3)"}),
+            "Cota Final (m)": pick_col({"Cota Final (m)"}),
+            "Coordendas": pick_col({"Coordendas", "Coordenadas"}),
+        }
 
-        df = df[colunas].copy()
+        canon_cols = list(colmap.keys())
+        out = pd.DataFrame()
+        for canon, src in colmap.items():
+            out[canon] = df[src] if src else pd.NA
+
+        df = out[canon_cols].copy()
         df["Data"] = pd.to_datetime(df["Data"].astype(str).str.strip(), dayfirst=True, errors="coerce")
         df = df.dropna(subset=["Data"])
-        for col in ("Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)", "Evapor. Parcial (mm)"):
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+        for col in (
+            "Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)",
+            "Evapor. Parcial (mm)", "Cota Interm. (m)", "Volume Interm. (m³)",
+            "Liberação (m³/s)", "Liberação (m³)", "Volume Final (m³)", "Cota Final (m)",
+        ):
+            df[col] = df[col].apply(to_number)
         return df
     except Exception:
         return pd.DataFrame()
