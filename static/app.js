@@ -546,28 +546,50 @@ async function loadSedes() {
         labels: sedesLabels.map(fmtDate),
         datasets: [
           {
-            label: 'Cota Simulada',
+            label: 'Cota Simulada (m)',
             data: sedesLabels.map(dt => cotaSimuladaByDate[dt] ?? null),
-            borderColor: '#1565c0',
-            backgroundColor: 'transparent',
+            borderColor: '#1e88e5',
+            backgroundColor: 'rgba(30, 136, 229, 0.10)',
+            borderWidth: 2,
+            borderDash: [6, 4],
             tension: .2,
             pointRadius: 3,
+            pointHoverRadius: 5,
             spanGaps: true,
+            fill: false,
           },
           {
-            label: 'Cota Realizada',
+            label: 'Cota Realizada (m)',
             data: sedesLabels.map(dt => cotaRealizadaByDate[dt] ?? null),
-            borderColor: '#ef6c00',
-            backgroundColor: 'transparent',
+            borderColor: '#43a047',
+            backgroundColor: 'rgba(67, 160, 71, 0.10)',
+            borderWidth: 2.2,
             tension: .2,
             pointRadius: 3,
+            pointHoverRadius: 5,
             spanGaps: true,
+            fill: false,
           },
         ],
       },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } },
-        scales: { x: { title: { display: true, text: 'Data' } },
-          y: { title: { display: true, text: 'Cota (m)' } } } },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { usePointStyle: true, boxWidth: 12 },
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 2)}`,
+            },
+          },
+        },
+        scales: {
+          x: { title: { display: true, text: 'Data' } },
+          y: { title: { display: true, text: 'Cota (m)' } },
+        },
+      },
     });
 
     destroyChart('chart-sedes-volume');
