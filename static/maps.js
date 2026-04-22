@@ -20,6 +20,7 @@ const LAYER_COLORS = {
 
 /* ── Mapa ativo por contentor ────────────────────────── */
 const _maps = {};
+window.__portalMaps = _maps;
 
 /** Cria (ou reutiliza) um mapa MapLibre num contentor */
 function getOrCreateMap(containerId, opts = {}) {
@@ -141,7 +142,7 @@ async function initMapPainel(rows) {
         paint: { 'line-color': '#1e88e5', 'line-width': 1.2 } });
     }
 
-    /* Pontos: reservatórios filtrados */
+    /* Pontos: reservatórios filtrados (dados da planilha) */
     if (rows && rows.length > 0) {
       const fcReservatorios = buildFeatureCollectionFromRows(rows);
       if (fcReservatorios) {
@@ -176,6 +177,43 @@ async function initMapPainel(rows) {
         if (coords.length > 0) fitMapToCoords(m, coords);
       }
     }
+
+    /* Fallback: usa pontos do GeoJSON quando não houver coordenadas na planilha */
+    if (!rows || rows.length === 0) {
+      const acudesGeo = await fetchGeoJSON('acudes');
+      if (acudesGeo) {
+        m.addSource('painel-acudes-fallback', { type: 'geojson', data: acudesGeo });
+        m.addLayer({
+          id: 'painel-acudes-fallback-circle',
+          type: 'circle',
+          source: 'painel-acudes-fallback',
+          paint: {
+            'circle-radius': 7,
+            'circle-color': '#2e7d32',
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#fff',
+          },
+        });
+        m.addLayer({
+          id: 'painel-acudes-fallback-label',
+          type: 'symbol',
+          source: 'painel-acudes-fallback',
+          layout: {
+            'text-field': ['coalesce', ['get', 'Name'], 'Açude'],
+            'text-size': 10,
+            'text-offset': [0, 1.3],
+            'text-anchor': 'top',
+          },
+          paint: { 'text-color': '#1a2232', 'text-halo-color': '#fff', 'text-halo-width': 1.4 },
+        });
+        addPopupOnClick(m, 'painel-acudes-fallback-circle', (p) => `<div class="map-popup">
+          <div class="map-popup-title">${p.Name || 'Açude'}</div>
+        </div>`);
+      }
+    }
+
+    // Garante render correto quando a seção estava oculta antes de abrir
+    setTimeout(() => m.resize(), 50);
   });
 }
 
@@ -386,3 +424,11 @@ function buildFeatureCollectionFromRows(rows) {
   if (features.length === 0) return null;
   return { type: 'FeatureCollection', features };
 }
+
+function resizeAllMaps() {
+  Object.values(_maps).forEach((map) => {
+    try { map.resize(); } catch (_) { /* noop */ }
+  });
+}
+
+window.resizeAllMaps = resizeAllMaps;

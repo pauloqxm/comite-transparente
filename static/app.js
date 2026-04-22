@@ -37,6 +37,9 @@ function navigate(sectionId) {
 
   window.location.hash = sectionId;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (typeof window.resizeAllMaps === 'function') {
+    setTimeout(() => window.resizeAllMaps(), 60);
+  }
 
   /* Lazy-load first visit */
   if (sectionId === 'painel'      && !_painelData)   loadPainel();
@@ -157,9 +160,11 @@ function qs(params) {
 async function loadPainel() {
   showLoading();
   try {
+    const resSel = document.getElementById('painel-sel-res').value;
+    const opSel  = document.getElementById('painel-sel-op').value;
     const params = {
-      reservatorio: getMultiSelect('painel-sel-res'),
-      operacao:     getMultiSelect('painel-sel-op'),
+      reservatorio: resSel && resSel !== '__all__' ? [resSel] : [],
+      operacao:     opSel && opSel !== '__all__' ? [opSel] : [],
       unidade:      document.getElementById('painel-sel-unidade').value,
       data_inicio:  document.getElementById('painel-data-ini').value,
       data_fim:     document.getElementById('painel-data-fim').value,
@@ -169,11 +174,14 @@ async function loadPainel() {
 
     /* Populate selects on first load */
     if (!document.getElementById('painel-sel-res').options.length) {
-      populateSelect('painel-sel-res', result.meta.reservatorios, true);
-      populateSelect('painel-sel-op', result.meta.operacoes, true);
-      /* default select all */
-      [...document.getElementById('painel-sel-res').options].forEach(o => o.selected = true);
-      [...document.getElementById('painel-sel-op').options].forEach(o => o.selected = true);
+      const resOpt = ['__all__', ...(result.meta.reservatorios || [])];
+      const opOpt  = ['__all__', ...(result.meta.operacoes || [])];
+      populateSelect('painel-sel-res', resOpt, false);
+      populateSelect('painel-sel-op', opOpt, false);
+      document.querySelector('#painel-sel-res option[value="__all__"]').textContent = 'Todos';
+      document.querySelector('#painel-sel-op option[value="__all__"]').textContent = 'Todas';
+      document.getElementById('painel-sel-res').value = '__all__';
+      document.getElementById('painel-sel-op').value = '__all__';
     }
 
     const df = result.data;
@@ -286,11 +294,11 @@ async function loadPainel() {
       let lat = null, lon = null;
       const coord = r.Coordenadas || r.Coordendas;
       if (coord) {
-        const parts = String(coord).replace(' ','').split(',');
+        const parts = String(coord).replace(/\s/g, '').split(',');
         if (parts.length === 2) { lat = parseFloat(parts[0]); lon = parseFloat(parts[1]); }
       }
       return { ...r, lat, lon };
-    }).filter(r => r.lat && r.lon);
+    }).filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lon));
     initMapPainel(mapRows);
 
   } catch (e) {
