@@ -293,7 +293,10 @@ async function initMapAcudes(rows) {
           }
         });
         addPopupOnClick(m, 'acudes-circle', popupAcude);
-        fitMapToCoords(m, features.map(f => f.geometry.coordinates));
+        fitMapToCoords(m, features.map(f => f.geometry.coordinates), {
+          maxZoom: 11,
+          singlePointZoom: 11,
+        });
       }
     }
   });
@@ -422,11 +425,22 @@ async function fetchGeoJSON(layer) {
   } catch { return null; }
 }
 
-function fitMapToCoords(map, coords) {
+function fitMapToCoords(map, coords, options = {}) {
   if (!coords || coords.length === 0) return;
+  const { maxZoom, singlePointZoom = 12 } = options;
+
+  if (coords.length === 1) {
+    const [lng, lat] = coords[0];
+    try {
+      map.easeTo({ center: [lng, lat], zoom: singlePointZoom });
+    } catch { /* ignore */ }
+    return;
+  }
+
   const lngs = coords.map(c => c[0]);
   const lats = coords.map(c => c[1]);
   const pad = { padding: 60 };
+  if (maxZoom != null) pad.maxZoom = maxZoom;
   try {
     map.fitBounds(
       [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
