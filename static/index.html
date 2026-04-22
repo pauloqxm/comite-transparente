@@ -62,8 +62,7 @@
   <button class="tab-btn active" data-section="home">🏠 Início</button>
   <button class="tab-btn" data-section="painel">💧 Painel</button>
   <button class="tab-btn" data-section="acudes">🌊 Açudes</button>
-  <button class="tab-btn" data-section="sedes">🏘️ Sedes</button>
-  <button class="tab-btn" data-section="alocacao">📋 Alocação</button>
+  <button class="tab-btn" data-section="sedes">🏘️ Simulações</button>
   <button class="tab-btn" data-section="comite">🙋 Comitê</button>
   <button class="tab-btn" data-section="publicacoes">📚 Publicações</button>
   <button class="tab-btn" data-section="diario">📊 Diário</button>
@@ -94,7 +93,7 @@
       </div>
       <div class="home-card" onclick="navigate('sedes')">
         <div class="home-card-icon">🏘️</div>
-        <div class="home-card-title">Situação das Sedes</div>
+        <div class="home-card-title">Simulações</div>
         <div class="home-card-desc">Cotas, volumes e simulações por município.</div>
       </div>
       <div class="home-card" onclick="navigate('diario')">
@@ -235,9 +234,9 @@
     </div>
   </section>
 
-  <!-- ── SEDES MUNICIPAIS ── -->
+  <!-- ── SIMULAÇÕES ── -->
   <section id="sedes" class="page-section">
-    <div class="section-header"><h2>🏘️ Situação das Sedes Municipais</h2></div>
+    <div class="section-header"><h2>🏘️ Simulações</h2></div>
     <div class="info-card">
       📌 Cotas, volumes e simulações de operação por açude e município.
     </div>
@@ -262,7 +261,7 @@
     <div class="kpi-row" id="sedes-kpis"></div>
 
     <div class="map-card">
-      <h3>🗺️ Mapa das Sedes</h3>
+      <h3>🗺️ Mapa das Simulações</h3>
       <div id="map-sedes" class="map-container"></div>
     </div>
 
@@ -271,52 +270,6 @@
       <canvas id="chart-sedes-cota" height="100"></canvas>
     </div>
 
-  </section>
-
-  <!-- ── ALOCAÇÃO NEGOCIADA ── -->
-  <section id="alocacao" class="page-section">
-    <div class="section-header"><h2>📋 Alocação Negociada de Água</h2></div>
-    <div class="info-card">
-      📌 A Alocação Negociada é o processo participativo de distribuição das vazões operadas pelos açudes da bacia,
-      definida em reuniões do Comitê com base nas demandas dos usuários e na disponibilidade hídrica.
-    </div>
-    <div class="content-columns">
-      <div class="content-text">
-        <h3>O que é?</h3>
-        <p>
-          A Alocação Negociada de Água é uma metodologia participativa desenvolvida pela COGERH para
-          envolver os usuários de água na gestão dos recursos hídricos. As decisões sobre a distribuição
-          das vazões são tomadas em reuniões com os representantes dos diferentes segmentos usuários.
-        </p>
-        <h3>Como funciona?</h3>
-        <ul>
-          <li>Levantamento das demandas dos usuários</li>
-          <li>Avaliação da disponibilidade hídrica dos reservatórios</li>
-          <li>Realização de reuniões de negociação com os usuários</li>
-          <li>Definição consensual das vazões a serem liberadas</li>
-          <li>Monitoramento e ajuste das operações</li>
-        </ul>
-        <h3>Mais informações</h3>
-        <p>
-          Acesse o <a href="https://www.cbhbanabuiu.com.br/" target="_blank" rel="noopener">site oficial do Comitê</a>
-          ou consulte a aba <strong>Documentos</strong> para atas e apresentações das reuniões de operação.
-        </p>
-      </div>
-      <div class="content-links">
-        <a class="link-card" href="#" onclick="navigate('docs'); return false;">
-          <span class="link-icon">📜</span>
-          <span>Atas das Reuniões</span>
-        </a>
-        <a class="link-card" href="#" onclick="navigate('painel'); return false;">
-          <span class="link-icon">💧</span>
-          <span>Painel de Vazões</span>
-        </a>
-        <a class="link-card" href="https://www.cbhbanabuiu.com.br/alocacao-negociada/" target="_blank" rel="noopener">
-          <span class="link-icon">🔗</span>
-          <span>Site do Comitê</span>
-        </a>
-      </div>
-    </div>
   </section>
 
   <!-- ── COMITÊ ── -->
