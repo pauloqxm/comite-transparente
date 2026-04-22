@@ -627,40 +627,6 @@ async function loadSedes() {
       },
     });
 
-    destroyChart('chart-sedes-volume');
-    const ctx2 = document.getElementById('chart-sedes-volume').getContext('2d');
-    _charts['chart-sedes-volume'] = new Chart(ctx2, {
-      type: 'line',
-      data: {
-        labels: sedesLabels.map(fmtDate),
-        datasets: acudesU.map((a, i) => {
-          const byDate = {};
-          datapoints.filter(r => r.Açude === a).forEach(r => { byDate[r.Data] = r['Volume (m³)']; });
-          return {
-            label: a,
-            data: sedesLabels.map(dt => byDate[dt] ?? null),
-            borderColor: COLORS[i % COLORS.length],
-            backgroundColor: 'transparent',
-            tension: .2,
-            pointRadius: 2,
-            spanGaps: true,
-          };
-        }),
-      },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } },
-        scales: { x: { title: { display: true, text: 'Data' } },
-          y: { title: { display: true, text: 'Volume (m³)' } } } },
-    });
-
-    /* Tabela */
-    const headers = ['Data', 'Açude', 'Município', 'Cota Simulada (m)', 'Cota Realizada (m)', 'Volume (m³)', 'Volume (%)', 'Liberação (m³/s)'];
-    const rows = df.sort((a,b) => (b.Data||'').localeCompare(a.Data||'')).map(r => [
-      fmtDate(r.Data), r.Açude||'—', r.Município||'—',
-      fmt(r['Cota Inicial (m)']), fmt(r['Cota Dia (m)']), fmt(r['Volume (m³)']), r['Volume (%)'] != null ? `${fmt(r['Volume (%)'],1)}%` : '—',
-      fmt(r['Liberação (m³/s)'], 3),
-    ]);
-    document.getElementById('sedes-table').innerHTML = buildTable(headers, rows);
-
   } catch (e) { console.error('loadSedes:', e); }
   finally { hideLoading(); }
 }
