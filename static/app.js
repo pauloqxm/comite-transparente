@@ -531,23 +531,39 @@ async function loadSedes() {
     const sedesLabels = [...new Set(datapoints.map(r => r.Data).filter(Boolean))].sort();
     destroyChart('chart-sedes-cota');
     const ctx1 = document.getElementById('chart-sedes-cota').getContext('2d');
+    const cotaSimuladaByDate = {};
+    const cotaRealizadaByDate = {};
+    sedesLabels.forEach((dt) => {
+      const rowsByDate = datapoints.filter(r => r.Data === dt);
+      const sims = rowsByDate.map(r => Number(r['Cota Inicial (m)'])).filter(v => !Number.isNaN(v));
+      const reals = rowsByDate.map(r => Number(r['Cota Dia (m)'])).filter(v => !Number.isNaN(v));
+      cotaSimuladaByDate[dt] = sims.length ? sims.reduce((a, b) => a + b, 0) / sims.length : null;
+      cotaRealizadaByDate[dt] = reals.length ? reals.reduce((a, b) => a + b, 0) / reals.length : null;
+    });
     _charts['chart-sedes-cota'] = new Chart(ctx1, {
       type: 'line',
       data: {
         labels: sedesLabels.map(fmtDate),
-        datasets: acudesU.map((a, i) => {
-          const byDate = {};
-          datapoints.filter(r => r.Açude === a).forEach(r => { byDate[r.Data] = r['Cota Dia (m)']; });
-          return {
-            label: a,
-            data: sedesLabels.map(dt => byDate[dt] ?? null),
-            borderColor: COLORS[i % COLORS.length],
+        datasets: [
+          {
+            label: 'Cota Simulada',
+            data: sedesLabels.map(dt => cotaSimuladaByDate[dt] ?? null),
+            borderColor: '#1565c0',
             backgroundColor: 'transparent',
             tension: .2,
-            pointRadius: 2,
+            pointRadius: 3,
             spanGaps: true,
-          };
-        }),
+          },
+          {
+            label: 'Cota Realizada',
+            data: sedesLabels.map(dt => cotaRealizadaByDate[dt] ?? null),
+            borderColor: '#ef6c00',
+            backgroundColor: 'transparent',
+            tension: .2,
+            pointRadius: 3,
+            spanGaps: true,
+          },
+        ],
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom' } },
         scales: { x: { title: { display: true, text: 'Data' } },
@@ -580,10 +596,10 @@ async function loadSedes() {
     });
 
     /* Tabela */
-    const headers = ['Data', 'Açude', 'Município', 'Cota Dia (m)', 'Volume (m³)', 'Volume (%)', 'Liberação (m³/s)'];
+    const headers = ['Data', 'Açude', 'Município', 'Cota Simulada (m)', 'Cota Realizada (m)', 'Volume (m³)', 'Volume (%)', 'Liberação (m³/s)'];
     const rows = df.sort((a,b) => (b.Data||'').localeCompare(a.Data||'')).map(r => [
       fmtDate(r.Data), r.Açude||'—', r.Município||'—',
-      fmt(r['Cota Dia (m)']), fmt(r['Volume (m³)']), r['Volume (%)'] != null ? `${fmt(r['Volume (%)'],1)}%` : '—',
+      fmt(r['Cota Inicial (m)']), fmt(r['Cota Dia (m)']), fmt(r['Volume (m³)']), r['Volume (%)'] != null ? `${fmt(r['Volume (%)'],1)}%` : '—',
       fmt(r['Liberação (m³/s)'], 3),
     ]);
     document.getElementById('sedes-table').innerHTML = buildTable(headers, rows);
